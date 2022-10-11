@@ -2,9 +2,9 @@ const express = require("express");
 
 // import subrouter
 const productsRouter = require("./products");
-const usersRouter = require("./products");
-const promosRouter = require("./products");
-const transactionsRouter = require("./products");
+const usersRouter = require("./users");
+const promosRouter = require("./promos");
+const transactionsRouter = require("./transactions");
 
 const mainRouter = express.Router();
 
