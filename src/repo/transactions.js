@@ -18,9 +18,9 @@ const createTransactions = (body) => {
   return new Promise((resolve, reject) => {
     //   cara pake parsing postman
     const query =
-      "insert into transactions (product_id, user_id, amount, delivery_method, payment_method, transaction_date) values ($1,$2,$3,$4,$5,$6)";
+      "insert into transactions (promo_id, user_id, amount, delivery_method, payment_method, transaction_date) values ($1,$2,$3,$4,$5,$6)";
     const {
-      product_id,
+      promo_id,
       user_id,
       amount,
       delivery_method,
@@ -30,7 +30,7 @@ const createTransactions = (body) => {
     postgreDb.query(
       query,
       [
-        product_id,
+        promo_id,
         user_id,
         amount,
         delivery_method,

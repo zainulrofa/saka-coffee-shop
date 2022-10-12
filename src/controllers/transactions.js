@@ -39,7 +39,7 @@ const edit = async (req, res) => {
 const drop = async (req, res) => {
   try {
     const response = await transactionsRepo.dropTransactions(req.params);
-    res.status(200).json({ result });
+    res.status(200).json({ result: response });
   } catch (err) {
     res.status(500).json({ msg: "Internal Server Error" });
   }

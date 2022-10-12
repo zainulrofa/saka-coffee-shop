@@ -65,9 +65,9 @@ const createUsers = (body) => {
 };
 
 const editUsers = (body, params) => {
-  const query = "update users set password=$1 where id = $2";
+  const query = "update users set last_name = $1 where id = $2";
   postgreDb
-    .query(query, [body.password, params.id])
+    .query(query, [body.last_name, params.id])
     .then((response) => {
       resolve(response);
     })
