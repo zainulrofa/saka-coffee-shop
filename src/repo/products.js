@@ -14,6 +14,58 @@ const getProducts = () => {
   });
 };
 
+const searchProducts = (params) => {
+  return new Promise((resolve, reject) => {
+    const query =
+      "select * from products where lower(product_name) like lower($1)";
+    const values = [`%${params.product_name}%`];
+    postgreDb.query(query, values, (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(err);
+      }
+      return resolve(result);
+    });
+  });
+};
+
+const filterProducts = (params) => {
+  return new Promise((resolve, reject) => {
+    const query =
+      "select * from products where lower(product_category) like lower($1) order by id asc";
+    const values = [`${params.product_category}`];
+    postgreDb.query(query, values, (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(err);
+      }
+      return resolve(result);
+    });
+  });
+};
+
+const sortProducts = (params) => {
+  return new Promise((resolve, reject) => {
+    const { sort } = params;
+    let query = "select id, product_name, price, create_at from products ";
+    if (sort) {
+      if (sort.toLowerCase() === "cheapest") {
+        query += "order by price asc";
+      }
+      if (sort.toLowerCase() === "newest") {
+        query += "order by create_at desc";
+      }
+    }
+    postgreDb.query(query, (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(err);
+      }
+      return resolve(result);
+    });
+  });
+};
+
 const createProducts = (body) => {
   return new Promise((resolve, reject) => {
     //   cara pake parsing postman
@@ -45,9 +97,10 @@ const createProducts = (body) => {
 };
 
 const editProducts = (body, params) => {
-  const query = "update products set price=$1 where id = $2";
+  const query =
+    "update products set product_size=$1, stock = $2, sold = $3 where id = $4";
   postgreDb
-    .query(query, [body.price, params.id])
+    .query(query, [body.product_size, body.stock, body.sold, params.id])
     .then((response) => {
       resolve(response);
     })
@@ -72,6 +125,9 @@ const dropProducts = (params) => {
 
 const productsRepo = {
   getProducts,
+  searchProducts,
+  sortProducts,
+  filterProducts,
   createProducts,
   editProducts,
   dropProducts,
