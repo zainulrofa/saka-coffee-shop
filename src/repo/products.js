@@ -49,11 +49,17 @@ const sortProducts = (params) => {
     const { sort } = params;
     let query = "select id, product_name, price, create_at from products ";
     if (sort) {
-      if (sort.toLowerCase() === "cheapest") {
+      if (sort.toLowerCase() === "lowest") {
         query += "order by price asc";
+      }
+      if (sort.toLowerCase() === "highest") {
+        query += "order by price desc";
       }
       if (sort.toLowerCase() === "newest") {
         query += "order by create_at desc";
+      }
+      if (sort.toLowerCase() === "oldest") {
+        query += "order by create_at asc";
       }
     }
     postgreDb.query(query, (err, result) => {
