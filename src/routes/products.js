@@ -1,28 +1,34 @@
 const express = require("express");
-
 const productsRouter = express.Router();
+const { get, create, edit, drop } = require("../controllers/products");
+const isLogin = require("../middleware/isLogin");
+const allowedRoles = require("../middleware/allowedRoles");
+const validate = require("../middleware/validate");
+const uploads = require("../middleware/upload");
 
-const {
-  get,
-  search,
-  sort,
-  filter,
-  create,
-  edit,
-  drop,
-} = require("../controllers/products");
+const allowed = {
+  query: ["search", "categories", "sort", "page", "limit"],
+  body: ["product_name", "price", "category_id", "description"],
+};
 
-productsRouter.get("/", get);
+productsRouter.get("/", validate.query(...allowed.query), get);
 
-productsRouter.get("/search", search);
+productsRouter.post(
+  "/",
+  isLogin(),
+  allowedRoles("Admin"),
+  uploads.single("image"),
+  validate.body(...allowed.body),
+  create
+);
 
-productsRouter.get("/sort", sort);
-
-productsRouter.get("/category", filter);
-
-productsRouter.post("/", create);
-
-productsRouter.patch("/:id", edit);
+productsRouter.patch(
+  "/:id",
+  isLogin(),
+  allowedRoles("Admin"),
+  uploads.single("image"),
+  edit
+);
 
 productsRouter.delete("/:id", drop);
 

@@ -1,74 +1,78 @@
 // import database
 const postgreDb = require("../config/postgre");
 
-const getTransactions = () => {
+const getTransactions = (id) => {
   return new Promise((resolve, reject) => {
-    const query = "select * from transactions";
-    postgreDb.query(query, (err, result) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
+    const query =
+      "select t.created_at, u.display_name, p.product_name, s.size , p.price, t.qty, pr.code, d.method, py.method, t.subtotal, st.status_name from transactions t join profile u on u.user_id = t.user_id join products p on p.id = t.product_id join sizes s on s.id = t.size_id join promos pr on pr.id = t.promo_id join deliveries d on d.id = t.delivery_id join payments py on py.id = t.payment_id join status st on st.id = t.status_id where t.user_id = $1 order by created_at desc";
+    postgreDb.query(query, [id], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
       }
+      return resolve(result.rows);
+    });
+  });
+};
+
+const createTransactions = (body, id) => {
+  return new Promise((resolve, reject) => {
+    const query =
+      "insert into transactions (user_id, product_id, size_id, promo_id, payment_id, delivery_id, qty, subtotal, status_id, created_at, update_at) values($1, $2, $3, $4, $5, $6, $7, $8, $9, to_timestamp($10), to_timestamp($11))";
+    const {
+      product_id,
+      size_id,
+      promo_id,
+      payment_id,
+      delivery_id,
+      qty,
+      subtotal,
+      status_id,
+    } = body;
+    const timeStamp = Date.now() / 1000;
+    const user_id = id;
+    const values = [
+      user_id,
+      product_id,
+      size_id,
+      promo_id,
+      payment_id,
+      delivery_id,
+      qty,
+      subtotal,
+      status_id,
+      timeStamp,
+      timeStamp,
+    ];
+
+    // return console.log(values);
+
+    postgreDb.query(query, values, (error, result) => {
+      if (error) return reject(error);
       return resolve(result);
     });
   });
 };
 
-const createTransactions = (body) => {
-  return new Promise((resolve, reject) => {
-    //   cara pake parsing postman
-    const query =
-      "insert into transactions (promo_id, user_id, amount, delivery_method, payment_method, transaction_date) values ($1,$2,$3,$4,$5,$6)";
-    const {
-      promo_id,
-      user_id,
-      amount,
-      delivery_method,
-      payment_method,
-      transaction_date,
-    } = body;
-    postgreDb.query(
-      query,
-      [
-        promo_id,
-        user_id,
-        amount,
-        delivery_method,
-        payment_method,
-        transaction_date,
-      ],
-      (err, queryResult) => {
-        if (err) {
-          console.log(err);
-          return reject(err);
-        }
-        resolve(queryResult);
-      }
-    );
-    //   cara post biasa
-    //   const query =
-    //   "insert into products (product_group, product_name, price, promo) values ('Foods','Drum Sticks', '30000', 'true')";
-    //   postgreDb.query(query, (err, queryResult) => {
-    //     if (err) {
-    //       console.log(err);
-    //       return res.status(500).json({ msg: "Internal Server Error" });
-    //     }
-    //     res.status(201).json({ result: queryResult.rows });
-    //   });
-  });
-};
-
 const editTransactions = (body, params) => {
-  const query = "update transactions set amount=$1 where id = $2";
-  postgreDb
-    .query(query, [body.amount, params.id])
-    .then((response) => {
-      resolve(response);
-    })
-    .catch((err) => {
-      console.log(err);
-      reject(err);
+  return new Promise((resolve, reject) => {
+    const values = [];
+    let query = "update transactions set ";
+    Object.keys(body).forEach((key, index, array) => {
+      if (index === array.length - 1) {
+        query += `${key} = $${index + 1} where id  = $${index + 2}`;
+        values.push(body[key], params.id);
+        return;
+      }
+      query += `${key} = $${index + 1}, `;
+      values.push(body[key]);
     });
+
+    postgreDb.query(query, values, (error, result) => {
+      if (error) return reject(error);
+      return resolve(result);
+    });
+  });
 };
 
 const dropTransactions = (params) => {

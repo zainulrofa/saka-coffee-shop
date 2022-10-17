@@ -2,25 +2,24 @@ const transactionsRepo = require("../repo/transactions");
 
 const get = async (req, res) => {
   try {
-    const response = await transactionsRepo.getTransactions();
-    res.status(200).json({
-      result: response.rows,
-    });
-  } catch (err) {
-    res.status(500).json({
-      msg: "Internal App Error",
-    });
+    const response = await transactionsRepo.getTransactions(req.userPayload.id);
+    res.status(200).json({ result: response });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const response = await transactionsRepo.createTransactions(req.body);
-    res.status(201).json({
-      result: response,
-    });
-  } catch (err) {
-    return res.status(500).json({ msg: "Internal Server Error" });
+    const response = await transactionsRepo.createTransactions(
+      req.body,
+      req.userPayload.id
+    );
+    res.status(201).json({ msg: "Transaction Success" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 };
 
@@ -30,8 +29,9 @@ const edit = async (req, res) => {
       req.body,
       req.params
     );
-    res.status(200).json({ result: response });
+    res.status(200).json({ result: "Changed Successfully" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
 };
@@ -39,7 +39,7 @@ const edit = async (req, res) => {
 const drop = async (req, res) => {
   try {
     const response = await transactionsRepo.dropTransactions(req.params);
-    res.status(200).json({ result: response });
+    res.status(200).json({ result: "Delete Success" });
   } catch (err) {
     res.status(500).json({ msg: "Internal Server Error" });
   }

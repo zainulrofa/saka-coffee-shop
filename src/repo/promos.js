@@ -16,45 +16,43 @@ const getPromos = () => {
 
 const createPromos = (body) => {
   return new Promise((resolve, reject) => {
-    //   cara pake parsing postman
     const query =
-      "insert into promos (product_id, promo_name, discount, code) values ($1,$2,$3,$4)";
-    const { product_id, promo_name, discount, code } = body;
+      "insert into promos(code, discount, product_id, created_at, update_at) values($1, $2, $3, to_timestamp($4), to_timestamp($5))";
+    const { code, discount, product_id } = body;
+    const timestamp = Date.now() / 1000;
     postgreDb.query(
       query,
-      [product_id, promo_name, discount, code],
-      (err, queryResult) => {
-        if (err) {
-          console.log(err);
-          return reject(err);
-        }
-        resolve(queryResult);
+      [code.toUpperCase(), discount, product_id, timestamp, timestamp],
+      (error, result) => {
+        if (error) return reject(error);
+        return resolve(result);
       }
     );
-    //   cara post biasa
-    //   const query =
-    //   "insert into products (product_group, product_name, price, promo) values ('Foods','Drum Sticks', '30000', 'true')";
-    //   postgreDb.query(query, (err, queryResult) => {
-    //     if (err) {
-    //       console.log(err);
-    //       return res.status(500).json({ msg: "Internal Server Error" });
-    //     }
-    //     res.status(201).json({ result: queryResult.rows });
-    //   });
   });
 };
 
 const editPromos = (body, params) => {
-  const query = "update promos set code=$1 where id = $2";
-  postgreDb
-    .query(query, [body.code, params.id])
-    .then((response) => {
-      resolve(response);
-    })
-    .catch((err) => {
-      console.log(err);
-      reject(err);
+  return new Promise((resolve, reject) => {
+    const values = [];
+    const timestamp = Date.now() / 1000;
+    let query = "update promos set ";
+    Object.keys(body).forEach((key, index, array) => {
+      if (index === array.length - 1) {
+        query += `${key} = $${index + 1}, update_at = to_timestamp($${
+          index + 2
+        })  where id = $${index + 3}`;
+        values.push(body[key], timestamp, params.id);
+        return;
+      }
+      query += `${key} = $${index + 1}, `;
+      values.push(body[key]);
     });
+
+    postgreDb.query(query, values, (error, result) => {
+      if (error) return reject(error);
+      return resolve(result);
+    });
+  });
 };
 
 const dropPromos = (params) => {

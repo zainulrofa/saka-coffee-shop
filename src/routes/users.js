@@ -1,13 +1,15 @@
 const express = require("express");
-
 const usersRouter = express.Router();
+const { get, create, edit, editPassword } = require("../controllers/users");
+const isLogin = require("../middleware/isLogin");
+const allowedRoles = require("../middleware/allowedRoles");
 
-const { get, create, edit } = require("../controllers/users");
-
-usersRouter.get("/", get);
-
+usersRouter.get("/", isLogin(), allowedRoles("User"), get);
+// register
 usersRouter.post("/", create);
-
-usersRouter.patch("/:id", edit);
+// edit profile
+usersRouter.patch("/", isLogin(), edit);
+// edit password
+usersRouter.patch("/password/:id", editPassword);
 
 module.exports = usersRouter;

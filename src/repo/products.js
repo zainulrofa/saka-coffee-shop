@@ -1,86 +1,137 @@
 // import database
 const postgreDb = require("../config/postgre");
 
-const getProducts = () => {
+const getProducts = (queryParams) => {
   return new Promise((resolve, reject) => {
-    const query = "select * from products";
-    postgreDb.query(query, (err, result) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
-      return resolve(result);
-    });
-  });
-};
+    const { search, categories, sort, limit, page } = queryParams;
+    let query =
+      "select p.product_name, p.price, p.image, c.category_name, p.description from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
+    let countQuery =
+      "select count(*) as count from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
 
-const searchProducts = (params) => {
-  return new Promise((resolve, reject) => {
-    const query =
-      "select * from products where lower(product_name) like lower($1)";
-    const values = [`%${params.product_name}%`];
-    postgreDb.query(query, values, (err, result) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
-      return resolve(result);
-    });
-  });
-};
+    let checkWhere = true;
+    let link = "http://localhost:8060/api/v1/products?";
 
-const filterProducts = (params) => {
-  return new Promise((resolve, reject) => {
-    const query =
-      "select * from products where lower(product_category) like lower($1) order by id asc";
-    const values = [`${params.product_category}`];
-    postgreDb.query(query, values, (err, result) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
-      return resolve(result);
-    });
-  });
-};
+    if (search) {
+      link += `search${search}&`;
+      query += `${
+        checkWhere ? "WHERE" : "AND"
+      } lower(p.product_name) like lower('%${search}%') `;
+      countQuery += `${
+        checkWhere ? "WHERE" : "AND"
+      } lower(p.product_name) like lower('%${search}%') `;
+      checkWhere = false;
+    }
 
-const sortProducts = (params) => {
-  return new Promise((resolve, reject) => {
-    const { sort } = params;
-    let query = "select id, product_name, price, create_at from products ";
+    if (categories && categories !== "") {
+      query += `${
+        checkWhere ? "WHERE" : "AND"
+      } lower(c.category_name) like lower('${categories}') `;
+
+      countQuery += `${
+        checkWhere ? "WHERE" : "AND"
+      } lower(c.category_name) like lower('${categories}') `;
+
+      checkWhere = false;
+      link += `categories=${categories}&`;
+    }
+
     if (sort) {
-      if (sort.toLowerCase() === "lowest") {
-        query += "order by price asc";
-      }
-      if (sort.toLowerCase() === "highest") {
-        query += "order by price desc";
-      }
-      if (sort.toLowerCase() === "newest") {
-        query += "order by create_at desc";
+      query += "group by p.id, c.category_name ";
+      if (sort.toLowerCase() === "popular") {
+        query += "order by count(t.qty) desc ";
+        link += "sort=popular&";
       }
       if (sort.toLowerCase() === "oldest") {
-        query += "order by create_at asc";
+        query += "order by p.created_at asc ";
+        link += "sort=oldest&";
+      }
+      if (sort.toLowerCase() === "newest") {
+        query += "order by p.created_at desc ";
+        link += "sort=newest&";
+      }
+      if (sort.toLowerCase() === "cheapest") {
+        query += "order by p.price asc ";
+        link += "sort=cheapest&";
+      }
+      if (sort.toLowerCase() === "priciest") {
+        query += "order by p.price desc ";
+        link += "sort=prciest&";
       }
     }
-    postgreDb.query(query, (err, result) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
-      return resolve(result);
+    query += "limit $1 offset $2";
+    console.log(query);
+    console.log(link);
+    const sqlLimit = limit ? limit : 10;
+    const sqlOffset =
+      !page || page === "1" ? 0 : (parseInt(page) - 1) * parseInt(sqlLimit);
+
+    // console.log(countQuery);
+    console.log(sqlLimit);
+    postgreDb.query(countQuery, (err, result) => {
+      if (err) return reject(err);
+      // return resolve(result.rows);
+      const totalData = result.rows[0].count;
+      const currentPage = page ? parseInt(page) : 1;
+      const totalPage =
+        parseInt(sqlLimit) > totalData
+          ? 1
+          : Math.ceil(totalData / parseInt(sqlLimit));
+
+      const prev =
+        currentPage - 1 <= 0
+          ? null
+          : link + `page=${currentPage - 1}&limit=${parseInt(sqlLimit)}`;
+
+      const next =
+        currentPage + 1 >= totalPage
+          ? null
+          : link + `page=${currentPage + 1}&limit=${parseInt(sqlLimit)}`;
+
+      const meta = {
+        page: currentPage,
+        totalPage,
+        limit: parseInt(sqlLimit),
+        totalData,
+        prev,
+        next,
+      };
+      console.log(totalPage, currentPage);
+      postgreDb.query(query, [sqlLimit, sqlOffset], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+        return resolve({
+          result: {
+            msg: "List products",
+            data: result.rows,
+            meta,
+          },
+        });
+      });
     });
   });
 };
 
-const createProducts = (body) => {
+const createProducts = (body, file) => {
   return new Promise((resolve, reject) => {
-    //   cara pake parsing postman
+    const timestamp = Date.now() / 1000;
     const query =
-      "insert into products (product_category, product_name, price) values ($1,$2,$3)";
-    const { product_category, product_name, price } = body;
+      "insert into products (product_name, price, image, category_id, description, created_at, update_at) values ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7))";
+    const { product_name, price, category_id, description } = body;
+    const imageUrl = `/images/${file.filename}`;
     postgreDb.query(
       query,
-      [product_category, product_name, price],
+      [
+        product_name,
+        price,
+        imageUrl,
+        category_id,
+        description,
+        timestamp,
+        timestamp,
+      ],
       (err, queryResult) => {
         if (err) {
           console.log(err);
@@ -89,51 +140,59 @@ const createProducts = (body) => {
         resolve(queryResult);
       }
     );
-    //   cara post biasa
-    //   const query =
-    //   "insert into products (product_group, product_name, price, promo) values ('Foods','Drum Sticks', '30000', 'true')";
-    //   postgreDb.query(query, (err, queryResult) => {
-    //     if (err) {
-    //       console.log(err);
-    //       return res.status(500).json({ msg: "Internal Server Error" });
-    //     }
-    //     res.status(201).json({ result: queryResult.rows });
-    //   });
   });
 };
 
-const editProducts = (body, params) => {
-  const query =
-    "update products set product_size=$1, stock = $2, sold = $3 where id = $4";
-  postgreDb
-    .query(query, [body.product_size, body.stock, body.sold, params.id])
-    .then((response) => {
-      resolve(response);
-    })
-    .catch((err) => {
-      console.log(err);
-      reject(err);
+const editProducts = (body, id, file) => {
+  return new Promise((resolve, reject) => {
+    let query = "update products set ";
+    const input = [];
+    if (file) {
+      if (Object.keys(body).length > 0) {
+        const imageUrl = `/image/${file.filename}`;
+        query += `image = ${imageUrl} `;
+      }
+      const imageUrl = `/image/${file.filename}`;
+      query += `image = '${imageUrl}' where id = $1 returning product_name`;
+      input.push(id);
+    }
+
+    Object.keys(body).forEach((element, index, array) => {
+      if (index === array.length - 1) {
+        query += `${element} = $${index + 1} where id = $${
+          index + 2
+        } returning product_name`;
+        input.push(body[element], id);
+        return;
+      }
+      query += `${element} = $${index + 1}, `;
+      input.push(body[element]);
     });
+
+    postgreDb
+      .query(query, input)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
 };
 
 const dropProducts = (params) => {
   return new Promise((resolve, reject) => {
     const query = "delete from products where id = $1";
-    postgreDb.query(query, [params.id], (err, result) => {
-      if (err) {
-        console.log(err);
-        reject(err);
-      }
-      resolve(result);
+    postgreDb.query(query, [params.id], (error, result) => {
+      if (error) return reject(error);
+      return resolve(result);
     });
   });
 };
 
 const productsRepo = {
   getProducts,
-  searchProducts,
-  sortProducts,
-  filterProducts,
   createProducts,
   editProducts,
   dropProducts,
