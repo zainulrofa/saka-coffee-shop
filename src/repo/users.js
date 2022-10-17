@@ -62,6 +62,7 @@ const createUsers = (body) => {
           console.log(error);
           return reject({ error });
         }
+
         if (checkResult.rows.length > 0) {
           const errorMessage = [];
           if (
