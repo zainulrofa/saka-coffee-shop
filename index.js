@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
+const cors = require("cors");
 
 // import database
 const postgreDb = require("./src/config/postgre");
@@ -18,6 +19,7 @@ postgreDb
   .then(() => {
     console.log("DB connected");
 
+    app.use(cors());
     // pasang parser untuk body
     app.use(express.json());
     app.use(express.static("./public/images"));

@@ -92,7 +92,7 @@ const getProducts = (queryParams) => {
         page: currentPage,
         totalPage,
         limit: parseInt(sqlLimit),
-        totalData,
+        totalData: parseInt(totalData),
         prev,
         next,
       };
@@ -120,7 +120,7 @@ const createProducts = (body, file) => {
     const query =
       "insert into products (product_name, price, image, category_id, description, created_at, update_at) values ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7))";
     const { product_name, price, category_id, description } = body;
-    const imageUrl = `/images/${file.filename}`;
+    const imageUrl = file.filename;
     postgreDb.query(
       query,
       [
@@ -145,16 +145,19 @@ const createProducts = (body, file) => {
 
 const editProducts = (body, id, file) => {
   return new Promise((resolve, reject) => {
+    const timestamp = Date.now() / 1000;
     let query = "update products set ";
+    let imageUrl = null;
     const input = [];
     if (file) {
-      if (Object.keys(body).length > 0) {
-        const imageUrl = `/image/${file.filename}`;
-        query += `image = ${imageUrl} `;
+      imageUrl = `${file.filename}`;
+      if (Object.keys(body).length === 0) {
+        query += `image = '${imageUrl}', update_at = to_timestamp($1) where id = $2 returning product_name`;
+        input.push(timestamp, id);
       }
-      const imageUrl = `/image/${file.filename}`;
-      query += `image = '${imageUrl}' where id = $1 returning product_name`;
-      input.push(id);
+      if (Object.keys(body).length > 0) {
+        query += `image = '${imageUrl}', `;
+      }
     }
 
     Object.keys(body).forEach((element, index, array) => {

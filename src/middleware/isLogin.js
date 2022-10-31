@@ -17,7 +17,7 @@ const isLogin = () => {
     jwt.verify(token, process.env.SECRET_KEY, (error, decodedPayload) => {
       if (error) {
         console.log(error);
-        res.status(500).json({ error: error.name });
+        return res.status(500).json({ error: error.name });
       }
       req.userPayload = decodedPayload;
       req.token = token;

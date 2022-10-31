@@ -3,12 +3,13 @@ const usersRouter = express.Router();
 const { get, create, edit, editPassword } = require("../controllers/users");
 const isLogin = require("../middleware/isLogin");
 const allowedRoles = require("../middleware/allowedRoles");
+const uploads = require("../middleware/upload");
 
 usersRouter.get("/", isLogin(), allowedRoles("User"), get);
 // register
 usersRouter.post("/", create);
 // edit profile
-usersRouter.patch("/", isLogin(), edit);
+usersRouter.patch("/", isLogin(), allowedRoles("User"), uploads, edit);
 // edit password
 usersRouter.patch("/password/:id", editPassword);
 

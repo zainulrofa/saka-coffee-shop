@@ -1,12 +1,35 @@
 const transactionsRepo = require("../repo/transactions");
+const resHelper = require("../helper/sendResponse");
 
 const get = async (req, res) => {
   try {
-    const response = await transactionsRepo.getTransactions(req.userPayload.id);
-    res.status(200).json({ result: response });
+    const response = await transactionsRepo.getTransactions(req.params.id);
+    resHelper.success(res, response.status, response);
+  } catch (error) {
+    resHelper.error(res, error.status, error);
+  }
+};
+
+// const get = async (req, res) => {
+//   try {
+//     const response = await transactionsRepo.getTransactions(req.userPayload.id);
+//     res.status(200).json({ result: response });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ msg: "Internal Server Error" });
+//   }
+// };
+
+const getAll = async (req, res) => {
+  try {
+    const response = await transactionsRepo.getAllTransactions(
+      req.userPayload.id,
+      req.query
+    );
+    return resHelper.success(res, response.status, response);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    return resHelper.error(res, error.status, error);
   }
 };
 
@@ -47,6 +70,7 @@ const drop = async (req, res) => {
 
 const transactionsController = {
   get,
+  getAll,
   create,
   edit,
   drop,

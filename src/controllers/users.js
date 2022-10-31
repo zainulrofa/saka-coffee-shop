@@ -29,9 +29,13 @@ const create = async (req, res) => {
 
 const edit = async (req, res) => {
   try {
-    const response = await usersRepo.editUsers(req.body, req.userPayload.id);
+    const response = await usersRepo.editUsers(
+      req.body,
+      req.userPayload.id,
+      req.file
+    );
     res.status(200).json({
-      msg: `${response.rows[0].first_name}, your data has been updated`,
+      msg: `your data has been updated`,
     });
   } catch (Error) {
     console.log(Error);

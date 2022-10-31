@@ -1,10 +1,23 @@
 const express = require("express");
 const transactionsRouter = express.Router();
-const { get, create, edit, drop } = require("../controllers/transactions");
+const {
+  get,
+  getAll,
+  create,
+  edit,
+  drop,
+} = require("../controllers/transactions");
 const isLogin = require("../middleware/isLogin");
 const allowedRoles = require("../middleware/allowedRoles");
 
-transactionsRouter.get("/", isLogin(), allowedRoles("User"), get);
+transactionsRouter.get("/:id", isLogin(), allowedRoles("User", "Admin"), get);
+
+transactionsRouter.get(
+  "/history",
+  isLogin(),
+  allowedRoles("User", "Admin"),
+  getAll
+);
 
 transactionsRouter.post("/", isLogin(), allowedRoles("User", "Admin"), create);
 

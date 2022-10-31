@@ -17,18 +17,12 @@ productsRouter.post(
   "/",
   isLogin(),
   allowedRoles("Admin"),
-  uploads.single("image"),
+  uploads,
   validate.body(...allowed.body),
   create
 );
 
-productsRouter.patch(
-  "/:id",
-  isLogin(),
-  allowedRoles("Admin"),
-  uploads.single("image"),
-  edit
-);
+productsRouter.patch("/:id", isLogin(), allowedRoles("Admin"), uploads, edit);
 
 productsRouter.delete("/:id", drop);
 

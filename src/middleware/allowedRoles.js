@@ -1,7 +1,7 @@
 const allowedRoles = (...allowed) => {
   return (req, res, next) => {
     const role = req.userPayload.role;
-    // console.log(req.userPayload);
+
     let isAllowed = false;
     for (let allowedRole of allowed) {
       if (allowedRole !== role) continue;

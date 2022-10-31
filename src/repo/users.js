@@ -115,29 +115,47 @@ const createUsers = (body) => {
   });
 };
 
-const editUsers = (body, id) => {
+const editUsers = (body, id, file) => {
   return new Promise((resolve, reject) => {
     const timeStamp = Date.now() / 1000;
     const values = [];
     let query = "update profile set ";
+    let imageUrl = "";
+    if (file) {
+      imageUrl = `/image/${file.filename} `;
+      if (Object.keys(body).length > 0) {
+        query += `image = '${imageUrl}', `;
+      }
+      if (Object.keys(body).length === 0) {
+        query += `image = '${imageUrl}', update_at = to_timestamp($1) where user_id = $2 returning display_name`;
+        values.push(timeStamp, id);
+      }
+    }
     Object.keys(body).forEach((key, index, array) => {
       if (index === array.length - 1) {
         query += `${key} = $${index + 1}, update_at = to_timestamp($${
           index + 2
-        }) where user_id = $${index + 3} returning first_name`;
+        }) where user_id = $${index + 3} returning display_name`;
         values.push(body[key], timeStamp, id);
         return;
       }
       query += `${key} = $${index + 1}, `;
       values.push(body[key]);
     });
-
+    console.log(query);
     postgreDb.query(query, values, (error, result) => {
       if (error) {
         console.log(error);
-        return reject(error);
+        return reject({ status: 500, msg: "Internal Server Error" });
       }
-      return resolve(result);
+      let data = {};
+      if (file) data = { Image: imageUrl, ...result.rows[0] };
+      data = { Image: imageUrl, ...result.rows[0] };
+      return resolve({
+        status: 200,
+        msg: `${result.rows[0].display_name}, your profile successfully updated`,
+        data,
+      });
     });
   });
 };
