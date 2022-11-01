@@ -1,6 +1,6 @@
 const express = require("express");
 const productsRouter = express.Router();
-const { get, create, edit, drop } = require("../controllers/products");
+const { get, create, edit, drop, getById } = require("../controllers/products");
 const isLogin = require("../middleware/isLogin");
 const allowedRoles = require("../middleware/allowedRoles");
 const validate = require("../middleware/validate");
@@ -11,7 +11,9 @@ const allowed = {
   body: ["product_name", "price", "category_id", "description"],
 };
 
-productsRouter.get("/", validate.query(...allowed.query), get);
+productsRouter.get("/:id", getById);
+
+productsRouter.get("/", get);
 
 productsRouter.post(
   "/",

@@ -1,11 +1,30 @@
 // import database
 const postgreDb = require("../config/postgre");
 
+const getProductById = (id) => {
+  return new Promise((resolve, reject) => {
+    const query =
+      "select p.product_name, p.price, p.image, c.category_name, p.description, count(t.qty) as sold from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id where p.id = $1 group by product_name, price , image, c.category_name , description";
+    postgreDb.query(query, [id], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
+      }
+      if (result.rows === 0) return reject(error);
+      return resolve({
+        status: 200,
+        msg: "Detail Product",
+        data: result.rows[0],
+      });
+    });
+  });
+};
+
 const getProducts = (queryParams) => {
   return new Promise((resolve, reject) => {
     const { search, categories, sort, limit, page } = queryParams;
     let query =
-      "select p.product_name, p.price, p.image, c.category_name, p.description from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
+      "select p.id, p.product_name, p.price, p.image, c.category_name, p.description from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
     let countQuery =
       "select count(*) as count from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
 
@@ -195,6 +214,7 @@ const dropProducts = (params) => {
 };
 
 const productsRepo = {
+  getProductById,
   getProducts,
   createProducts,
   editProducts,

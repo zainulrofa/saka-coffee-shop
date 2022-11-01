@@ -120,15 +120,15 @@ const editUsers = (body, id, file) => {
     const timeStamp = Date.now() / 1000;
     const values = [];
     let query = "update profile set ";
-    let imageUrl = "";
+    let imageUrl = null;
     if (file) {
       imageUrl = `/image/${file.filename} `;
-      if (Object.keys(body).length > 0) {
-        query += `image = '${imageUrl}', `;
-      }
       if (Object.keys(body).length === 0) {
         query += `image = '${imageUrl}', update_at = to_timestamp($1) where user_id = $2 returning display_name`;
         values.push(timeStamp, id);
+      }
+      if (Object.keys(body).length > 0) {
+        query += `image = '${imageUrl}', `;
       }
     }
     Object.keys(body).forEach((key, index, array) => {
@@ -143,6 +143,7 @@ const editUsers = (body, id, file) => {
       values.push(body[key]);
     });
     console.log(query);
+
     postgreDb.query(query, values, (error, result) => {
       if (error) {
         console.log(error);

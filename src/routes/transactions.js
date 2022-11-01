@@ -19,6 +19,13 @@ transactionsRouter.get(
   getAll
 );
 
+// transactionsRouter.get(
+//   "/history",
+//   isLogin(),
+//   allowedRoles("User", "Admin"),
+//   getAll
+// );
+
 transactionsRouter.post("/", isLogin(), allowedRoles("User", "Admin"), create);
 
 transactionsRouter.patch("/:id", isLogin(), allowedRoles("Admin"), edit);

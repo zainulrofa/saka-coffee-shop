@@ -1,5 +1,14 @@
 const productsRepo = require("../repo/products");
 
+const getById = async (req, res) => {
+  try {
+    const response = await productsRepo.getProductById(req.params.id);
+    return res.status(200).json({ result: response });
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
 const get = async (req, res) => {
   try {
     const response = await productsRepo.getProducts(req.query);
@@ -53,6 +62,7 @@ const drop = async (req, res) => {
 };
 
 const productsController = {
+  getById,
   get,
   create,
   edit,
