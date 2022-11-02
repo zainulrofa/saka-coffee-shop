@@ -122,7 +122,7 @@ const editUsers = (body, id, file) => {
     let query = "update profile set ";
     let imageUrl = null;
     if (file) {
-      imageUrl = `/image/${file.filename} `;
+      imageUrl = file.filename;
       if (Object.keys(body).length === 0) {
         query += `image = '${imageUrl}', update_at = to_timestamp($1) where user_id = $2 returning display_name`;
         values.push(timeStamp, id);
