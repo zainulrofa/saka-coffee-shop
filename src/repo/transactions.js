@@ -29,7 +29,7 @@ const getAllTransactions = (id, queryParams) => {
       "select count(id) as count from transactions where user_id = $1";
 
     const query =
-      "select t.created_at, p2.display_name, p.product_name, s.size , p.price,t.qty, pr.code, d.method, py.method, t.subtotal, st.status_name from transactions t join profile p2  on p2.user_id = t.user_id join products p on p.id = t.product_id join sizes s on s.id = t.size_id join promos pr on pr.id = t.promo_id join deliveries d on d.id = t.delivery_id join payments py on py.id = t.payment_id join status st on st.id = t.status_id where t.user_id = $1 order by created_at desc limit $2 offset $3";
+      "select t.created_at, p2.display_name, p.product_name, p.image, s.size , p.price,t.qty, pr.code, d.method, py.method, t.subtotal, st.status_name from transactions t join profile p2  on p2.user_id = t.user_id join products p on p.id = t.product_id join sizes s on s.id = t.size_id join promos pr on pr.id = t.promo_id join deliveries d on d.id = t.delivery_id join payments py on py.id = t.payment_id join status st on st.id = t.status_id where t.user_id = $1 order by created_at desc limit $2 offset $3";
 
     postgreDb.query(countQuery, [id], (error, result) => {
       if (error) {

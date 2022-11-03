@@ -12,12 +12,7 @@ const allowedRoles = require("../middleware/allowedRoles");
 
 transactionsRouter.get("/:id", isLogin(), allowedRoles("User", "Admin"), get);
 
-transactionsRouter.get(
-  "/history",
-  isLogin(),
-  allowedRoles("User", "Admin"),
-  getAll
-);
+transactionsRouter.get("/", isLogin(), allowedRoles("User", "Admin"), getAll);
 
 // transactionsRouter.get(
 //   "/history",
