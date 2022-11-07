@@ -24,12 +24,21 @@ const getProducts = (queryParams) => {
   return new Promise((resolve, reject) => {
     const { search, categories, sort, limit, page } = queryParams;
     let query =
-      "select p.id, p.product_name, p.price, p.image, c.category_name, p.description from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
+      "select p.id, p.product_name, p.price, p.image, c.category_name, p.description from products p join categories c on c.id = p.category_id ";
     let countQuery =
-      "select count(*) as count from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
+      "select count(p.id) as count from products p join categories c on c.id = p.category_id ";
 
     let checkWhere = true;
     let link = "http://localhost:8060/api/v1/products?";
+
+    if (sort) {
+      if (sort.toLowerCase() === "popular") {
+        query =
+          "select p.id, p.product_name, p.price, p.image, c.category_name, p.description from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id ";
+        countQuery =
+          "select count(p.id) as count from products p join categories c on c.id = p.category_id  left join transactions t on t.product_id = p.id ";
+      }
+    }
 
     if (search) {
       link += `search${search}&`;
@@ -57,10 +66,7 @@ const getProducts = (queryParams) => {
 
     if (sort) {
       query += "group by p.id, c.category_name ";
-      if (sort.toLowerCase() === "popular") {
-        query += "order by count(t.qty) desc ";
-        link += "sort=popular&";
-      }
+      countQuery += "group by p.id";
       if (sort.toLowerCase() === "oldest") {
         query += "order by p.created_at asc ";
         link += "sort=oldest&";
@@ -75,13 +81,13 @@ const getProducts = (queryParams) => {
       }
       if (sort.toLowerCase() === "priciest") {
         query += "order by p.price desc ";
-        link += "sort=prciest&";
+        link += "sort=priciest&";
       }
     }
     query += "limit $1 offset $2";
     console.log(query);
     console.log(link);
-    const sqlLimit = limit ? limit : 10;
+    const sqlLimit = limit ? limit : 12;
     const sqlOffset =
       !page || page === "1" ? 0 : (parseInt(page) - 1) * parseInt(sqlLimit);
 
@@ -90,7 +96,11 @@ const getProducts = (queryParams) => {
     postgreDb.query(countQuery, (err, result) => {
       if (err) return reject(err);
       // return resolve(result.rows);
-      const totalData = result.rows[0].count;
+      const totalData =
+        sort && sort.toLowerCase() === "popular"
+          ? result.rows.length
+          : result.rows[0].count;
+
       const currentPage = page ? parseInt(page) : 1;
       const totalPage =
         parseInt(sqlLimit) > totalData

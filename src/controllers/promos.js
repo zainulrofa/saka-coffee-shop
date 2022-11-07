@@ -13,11 +13,23 @@ const get = async (req, res) => {
   }
 };
 
+// const create = async (req, res) => {
+//   try {
+//     const response = await promosRepo.createPromos(req.body);
+//     return res.status(201).json({
+//       msg: `Prommo ${req.body.code.toUpperCase()} Added Successfully`,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ msg: "Internal Server Error" });
+//   }
+// };
+
 const create = async (req, res) => {
   try {
-    const response = await promosRepo.createPromos(req.body);
+    const response = await promosRepo.createPromos(req.body, req.file);
     return res.status(201).json({
-      msg: `Prommo ${req.body.code.toUpperCase()} Added Successfully`,
+      msg: `Promo ${req.body.code.toUpperCase()} Added Successfully`,
     });
   } catch (error) {
     console.log(error);

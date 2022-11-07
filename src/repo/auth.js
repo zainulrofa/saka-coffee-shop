@@ -42,7 +42,7 @@ const authsRepo = {
             payload,
             SECRET_KEY,
             {
-              expiresIn: "10m",
+              expiresIn: "10d",
             },
             (error, token) => {
               if (error) {

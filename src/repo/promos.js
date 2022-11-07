@@ -14,18 +14,41 @@ const getPromos = () => {
   });
 };
 
-const createPromos = (body) => {
+const createPromos = (body, file) => {
   return new Promise((resolve, reject) => {
     const query =
-      "insert into promos(code, discount, product_id, created_at, update_at) values($1, $2, $3, to_timestamp($4), to_timestamp($5))";
-    const { code, discount, product_id } = body;
+      "insert into promos(code, discount, description, duration, created_at, update_at, image, promo_name, min_price) values($1, $2, $3, $4, to_timestamp($5), to_timestamp($6), $7, $8, $9) returning *";
+    const { code, discount, description, duration, promo_name, min_price } =
+      body;
+    const imageUrl = `${file.filename}`;
     const timestamp = Date.now() / 1000;
     postgreDb.query(
       query,
-      [code.toUpperCase(), discount, product_id, timestamp, timestamp],
+      [
+        code.toUpperCase(),
+        discount,
+        description,
+        duration,
+        timestamp,
+        timestamp,
+        imageUrl,
+        promo_name,
+        min_price,
+      ],
       (error, result) => {
-        if (error) return reject(error);
-        return resolve(result);
+        if (error) {
+          console.log(error);
+          return reject({
+            status: 500,
+            msg: "Internal Server Error",
+          });
+        }
+
+        return resolve({
+          status: 201,
+          msg: `promo ${result.rows[0].code} created sucessfully`,
+          data: { ...result.rows[0] },
+        });
       }
     );
   });
