@@ -50,7 +50,16 @@
   - Patch Promos
   - Delete Promos
 - Transactions
+
   - Get transaction
   - Create transaction
   - Patch transaction
   - Delete transactions
+
+## Documentation
+
+[Documentation](https://saka-backend-1xwuafy4s-zainulrofa.vercel.app/)
+
+## Authors
+
+- [@zainrofa](https://github.com/zainulrofa/saka-coffee-shop)
