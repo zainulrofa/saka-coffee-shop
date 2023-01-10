@@ -39,10 +39,16 @@ const create = async (req, res) => {
       req.body,
       req.userPayload.id
     );
-    res.status(201).json({ msg: "Transaction Success" });
+    res.status(201).json({
+      status: 201,
+      msg: "Transaction Success",
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    res.status(500).json({
+      status: 500,
+      msg: "Internal Server Error",
+    });
   }
 };
 
@@ -52,19 +58,31 @@ const edit = async (req, res) => {
       req.body,
       req.params
     );
-    res.status(200).json({ result: "Changed Successfully" });
+    res.status(200).json({
+      status: 200,
+      result: "Changed Successfully",
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    res.status(500).json({
+      status: 500,
+      msg: "Internal Server Error",
+    });
   }
 };
 
 const drop = async (req, res) => {
   try {
     const response = await transactionsRepo.dropTransactions(req.params);
-    res.status(200).json({ result: "Delete Success" });
+    res.status(200).json({
+      status: 200,
+      result: "Delete Success",
+    });
   } catch (err) {
-    res.status(500).json({ msg: "Internal Server Error" });
+    res.status(500).json({
+      status: 500,
+      msg: "Internal Server Error",
+    });
   }
 };
 
