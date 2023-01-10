@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+require("./src/config/redis");
 
 // import database
 const postgreDb = require("./src/config/postgre");

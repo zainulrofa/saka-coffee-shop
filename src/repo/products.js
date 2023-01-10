@@ -4,7 +4,7 @@ const postgreDb = require("../config/postgre");
 const getProductById = (id) => {
   return new Promise((resolve, reject) => {
     const query =
-      "select p.product_name, p.price, p.image, c.category_name, p.description, count(t.qty) as sold from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id where p.id = $1 group by product_name, price , image, c.category_name , description";
+      "select p.id, p.product_name, p.price, p.image, c.category_name, p.description, count(t.qty) as sold from products p join categories c on c.id = p.category_id left join transactions t on t.product_id = p.id where p.id = $1 group by p.id, product_name, price , image, c.category_name , description";
     postgreDb.query(query, [id], (error, result) => {
       if (error) {
         console.log(error);
@@ -147,9 +147,9 @@ const createProducts = (body, file) => {
   return new Promise((resolve, reject) => {
     const timestamp = Date.now() / 1000;
     const query =
-      "insert into products (product_name, price, image, category_id, description, created_at, update_at) values ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7))";
+      "insert into products (product_name, price, image, category_id, description, created_at, update_at) values ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7)) returning *";
     const { product_name, price, category_id, description } = body;
-    const imageUrl = file.filename;
+    const imageUrl = `${file.filename}`;
     postgreDb.query(
       query,
       [
@@ -215,7 +215,7 @@ const editProducts = (body, id, file) => {
 
 const dropProducts = (params) => {
   return new Promise((resolve, reject) => {
-    const query = "delete from products where id = $1";
+    const query = "delete from products where id = $1 returning *";
     postgreDb.query(query, [params.id], (error, result) => {
       if (error) return reject(error);
       return resolve(result);

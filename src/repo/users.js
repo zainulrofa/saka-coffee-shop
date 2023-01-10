@@ -124,21 +124,24 @@ const editUsers = (body, id, file) => {
     if (file) {
       imageUrl = file.filename;
       if (Object.keys(body).length === 0) {
-        query += `image = '${imageUrl}', update_at = to_timestamp($1) where user_id = $2 returning display_name`;
+        query += `image = '${imageUrl}', update_at = to_timestamp($1) where user_id = $2`;
         values.push(timeStamp, id);
       }
       if (Object.keys(body).length > 0) {
         query += `image = '${imageUrl}', `;
       }
     }
+    let returning = "returning ";
     Object.keys(body).forEach((key, index, array) => {
       if (index === array.length - 1) {
+        returning += `${key}`;
         query += `${key} = $${index + 1}, update_at = to_timestamp($${
           index + 2
-        }) where user_id = $${index + 3} returning display_name`;
+        }) where user_id = $${index + 3} ${returning}`;
         values.push(body[key], timeStamp, id);
         return;
       }
+      returning += `${key}, `;
       query += `${key} = $${index + 1}, `;
       values.push(body[key]);
     });
@@ -149,9 +152,9 @@ const editUsers = (body, id, file) => {
         console.log(error);
         return reject({ status: 500, msg: "Internal Server Error" });
       }
-      let data = {};
-      if (file) data = { Image: imageUrl, ...result.rows[0] };
-      data = { Image: imageUrl, ...result.rows[0] };
+      const data = file
+        ? { Image: imageUrl, ...result.rows[0] }
+        : { ...result.rows[0] };
       return resolve({
         status: 200,
         msg: `${result.rows[0].display_name}, your profile successfully updated`,

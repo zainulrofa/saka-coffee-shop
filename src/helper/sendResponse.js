@@ -9,6 +9,7 @@ const sendResponse = {
     return res.status(status).json(results);
   },
   error: (res, status, error) => {
+    console.log(error);
     return res
       .status(status)
       .json({ status, msg: error.msg, data: error.data || null });

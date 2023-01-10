@@ -36,6 +36,7 @@ const edit = async (req, res) => {
     );
     res.status(200).json({
       msg: `your data has been updated`,
+      data: { ...response.data },
     });
   } catch (Error) {
     console.log(Error);

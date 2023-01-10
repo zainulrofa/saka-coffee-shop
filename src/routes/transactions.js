@@ -10,9 +10,9 @@ const {
 const isLogin = require("../middleware/isLogin");
 const allowedRoles = require("../middleware/allowedRoles");
 
-transactionsRouter.get("/:id", isLogin(), allowedRoles("User", "Admin"), get);
-
 transactionsRouter.get("/", isLogin(), allowedRoles("User", "Admin"), getAll);
+
+// transactionsRouter.get("/:id", isLogin(), allowedRoles("User", "Admin"), get);
 
 // transactionsRouter.get(
 //   "/history",
